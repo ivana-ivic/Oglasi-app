@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+
+    <TextView
+        android:text="@string/new_ad_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/editText_newAdTitle"
+        android:layout_alignBottom="@+id/editText_newAdTitle"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName|textCapSentences"
+        android:ems="10"
+        android:id="@+id/editText_newAdTitle"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/textView"
+        android:layout_marginLeft="36dp"
+        android:layout_marginStart="36dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine|textCapSentences"
+        android:ems="10"
+        android:layout_below="@+id/editText_newAdTitle"
+        android:layout_alignLeft="@+id/editText_newAdTitle"
+        android:layout_alignStart="@+id/editText_newAdTitle"
+        android:layout_marginTop="14dp"
+        android:id="@+id/editText_newAdText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="@string/new_ad_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/editText_newAdText"
+        android:layout_alignBottom="@+id/editText_newAdText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="@string/new_ad_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editText_newAdText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="27dp"
+        android:id="@+id/textView10"
+        android:textSize="18sp" />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/textView10"
+        android:layout_alignLeft="@+id/editText_newAdText"
+        android:layout_alignStart="@+id/editText_newAdText"
+        android:layout_marginLeft="19dp"
+        android:layout_marginStart="19dp"
+        android:id="@+id/spinner_newAdCat1"
+        android:spinnerMode="dialog"
+        android:entries="@array/cat_1" />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:id="@+id/spinner_newAdCat2"
+        android:spinnerMode="dialog"
+        android:layout_below="@+id/spinner_newAdCat1"
+        android:layout_alignLeft="@+id/spinner_newAdCat1"
+        android:layout_alignStart="@+id/spinner_newAdCat1"
+        android:entries="@array/__" />
+
+    <Button
+        android:text="@string/new_ad_confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:id="@+id/button_addNewAd"
+        android:layout_below="@+id/spinner_newAdCat2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

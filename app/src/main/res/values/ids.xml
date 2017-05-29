@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="id_load_more_button" type="id"/>
+    <item name="imageButton_selectImages" type="id"/>
+    <item name="button_skipAddImages" type="id"/>
+</resources>

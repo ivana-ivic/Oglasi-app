@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/linear_add_images">
+
+
+    <!--<RelativeLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent">-->
+
+        <!--<ImageButton-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--app:srcCompat="@mipmap/ic_add_a_photo_black_24dp"-->
+            <!--android:id="@+id/imageButton_selectImages"-->
+            <!--android:layout_alignParentTop="true"-->
+            <!--android:layout_alignBottom="@+id/button_skipAddImages" />-->
+
+        <!--<Button-->
+            <!--android:text="@string/new_ad_confirm"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentTop="true"-->
+            <!--android:layout_toRightOf="@+id/imageButton_selectImages"-->
+            <!--android:layout_toEndOf="@+id/imageButton_selectImages"-->
+            <!--android:layout_marginLeft="36dp"-->
+            <!--android:layout_marginStart="36dp"-->
+            <!--android:id="@+id/button_skipAddImages" />-->
+    <!--</RelativeLayout>-->
+</LinearLayout>

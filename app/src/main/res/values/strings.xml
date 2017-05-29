@@ -1,0 +1,279 @@
+<resources>
+    <string name="app_name">Oglasi</string>
+    <string name="title_activity_login">Prijava</string>
+    <string name="title_activity_ad">Oglas</string>
+    <string name="title_activity_home">Oglasi</string>
+    <string name="title_activity_user">Korisnik</string>
+    <string name="title_activity_user_ads">Oglasi korisnika</string>
+    <string name="title_activity_new_ad">Novi oglas</string>
+    <string name="title_activity_settings">Podešavanja</string>
+    <string name="title_activity_register">Registracija</string>
+    <string name="title_activity_edit_user">Izmena profila</string>
+    <string name="title_activity_edit_password">Izmena lozinke</string>
+    <string name="title_activity_add_images">Dodaj slike</string>
+    <string name="title_activity_edit_ad">Izmeni oglas</string>
+    <string name="title_activity_search">Pretraga</string>
+
+    <!--Menu-->
+    <string name="menu_home">Početna</string>
+    <string name="menu_search">Pretraga</string>
+    <string name="menu_settings">Podesavanja</string>
+    <string name="menu_profile">Profil</string>
+    <string name="menu_login">Prijava</string>
+    <string name="menu_logout">Odjava</string>
+    <string name="menu_add">Dodaj oglas</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Korisničko ime</string>
+    <string name="prompt_password">Lozinka</string>
+    <string name="action_sign_in">Prijava</string>
+    <string name="action_sign_in_short">Prijava</string>
+    <string name="error_invalid_email">Email adresa nije validna</string>
+    <string name="error_invalid_password">Lozinka je prekratka</string>
+    <string name="error_incorrect_password">Lozinka nije validna</string>
+    <string name="error_field_required">Ovo polje je obavezno</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="register_link">Nemate nalog? Registrujte se.</string>
+
+    <!--Strings related to register-->
+    <string name="register_username">Korisničko ime</string>
+    <string name="register_email">Email</string>
+    <string name="register_phone">Telefon</string>
+    <string name="register_desctiption">Opis</string>
+    <string name="register_district">Okrug</string>
+    <string name="register_city">Grad</string>
+    <string name="register_password">Lozinka</string>
+    <string name="register_repeat_password">Ponovite lozinku</string>
+    <string name="register_button">Registracija</string>
+
+    <!-- Strings related to HomeActivity -->
+    <string name="home_activity_load_more">Učitaj još</string>
+
+    <!-- Strings related to AdActivity -->
+    <string name="ad_activity_user">Oglas postavio korisnik: </string>
+    <string name="ad_activity_contact_info">Kontakt podaci: </string>
+    <string name="ad_activity_comments">Komentari: </string>
+    <string name="ad_activity_email">Email: </string>
+    <string name="ad_activity_phone">Telefon: </string>
+    <string name="ad_activity_categories_separator"> > </string>
+
+    <!-- Strings related to UserActivity -->
+    <string name="user_activity_city">Grad: </string>
+    <string name="user_activity_district">Okrug: </string>
+    <string name="user_activity_email">Email: </string>
+    <string name="user_activity_phone">Telefon: </string>
+
+    <!--Strings related to NewAdActivity-->
+    <string name="new_ad_text">Tekst: </string>
+    <string name="new_ad_category">Kategorije: </string>
+    <string name="new_ad_title">Naslov: </string>
+    <string name="new_ad_pictures">Dodaj slike</string>
+    <string name="new_ad_confirm">Dalje</string>
+    <string name="new_ad_img_names">Izabrane slike</string>
+
+    <!--Strings related to SettingsActivity-->
+    <string name="settings_editProfile">Izmeni profil</string>
+    <string name="settings_deleteProfile">Obriši profil</string>
+    <string name="settings_deleteDatabase">Obriši podatke</string>
+
+    <!--Strings related to EditUserActivity-->
+    <string name="button_editPassword">Promeni lozinku</string>
+    <string name="button_saveChanges">Sačuvaj izmene</string>
+
+    <!--Strings related to EditPasswordActivity-->
+    <string name="old_password">Stara lozinka</string>
+    <string name="new_password">Nova lozinka</string>
+    <string name="repeat_new_password">Ponovite novu lozinku</string>
+
+    <!--Strings related to AddImagesActivity-->
+    <string name="add_images">Dodaj</string>
+    <string name="skip_add_images">Preskoči</string>
+
+    <!--Strings related to EditAdActivity-->
+    <string name="edit_ad_save_changes">Sačuvaj izmene</string>
+    <string name="edit_ad_cancel_changes">Nazad</string>
+    <string name="edit_ad_add_images">Dodaj slike</string>
+
+    <!--Strings related to SearchActivity-->
+    <string name="search_ads_cat">Kategorije:</string>
+    <string name="search_ads_result">Rezultat:</string>
+    <string name="search_ads_filtered_search">Primeni</string>
+    <string name="search_ads_search_categories">Kategorije</string>
+    <string name="search_restart">Restartuj</string>
+
+    <!--Strings related to SearchActivity-->
+    <string name="no_user_ads">Nema oglasa</string>
+
+    <!--Strings related to AddCommentActivity-->
+    <string name="add_comment_activity_title">Dodaj komentar</string>
+    <string name="add_comment_activity_button">Dodaj</string>
+
+    <!--spinner entries-->
+    <string-array name="district_items">
+        <item>Borski okrug</item>
+        <item>Braničevski okrug</item>
+        <item>Grad Beograd</item>
+        <item>Zaječarski okrug</item>
+        <item>Zapadnobački okrug</item>
+        <item>Zlatiborski okrug</item>
+        <item>Jablanički okrug</item>
+        <item>Južnobanatski okrug</item>
+        <item>Južnobački okrug</item>
+        <item>Kolubarski okrug</item>
+        <item>Kosovski okrug</item>
+        <item>Kosovskomitrovački okrug</item>
+        <item>Kosovskopomoravski okrug</item>
+        <item>Mačvanski okrug</item>
+        <item>Moravički okrug</item>
+        <item>Nišavski okrug</item>
+        <item>Pećki okrug</item>
+        <item>Pirotski okrug</item>
+        <item>Podunavski okrug</item>
+        <item>Pomoravski okrug</item>
+        <item>Prizrenski okrug</item>
+        <item>Pčinjski okrug</item>
+        <item>Rasinski okrug</item>
+        <item>Raški okrug</item>
+        <item>Severnobanatski okrug</item>
+        <item>Severnobački okrug</item>
+        <item>Srednjobanatski okrug</item>
+        <item>Sremski okrug</item>
+        <item>Toplički okrug</item>
+        <item>Šumadijski okrug</item>
+    </string-array>
+
+    <string-array name="city_items">
+        <item>Beograd</item>
+        <item>Novi Sad</item>
+        <item>Niš</item>
+        <item>Priština</item>
+        <item>Kragujevac</item>
+        <item>Subotica</item>
+        <item>Pančevo</item>
+        <item>Zrenjanin</item>
+        <item>Čačak</item>
+        <item>Kraljevo</item>
+        <item>Novi Pazar</item>
+        <item>Leskovac</item>
+        <item>Smederevo</item>
+        <item>Vranje</item>
+        <item>Užice</item>
+        <item>Valjevo</item>
+        <item>Kruševac</item>
+        <item>Šabac</item>
+        <item>Požarevac</item>
+        <item>Sombor</item>
+        <item>Pirot</item>
+        <item>Zaječar</item>
+        <item>Bor</item>
+        <item>Kikinda</item>
+        <item>Sremska Mitrovica</item>
+        <item>Jagodina</item>
+        <item>Aleksinac</item>
+        <item>Vršac</item>
+        <item>Loznica</item>
+        <item>Inđija</item>
+        <item>Knjaževac</item>
+        <item>Mladenovac</item>
+        <item>Negotin</item>
+        <item>Obrenovac</item>
+        <item>Ruma</item>
+        <item>Sjenica</item>
+        <item>Temerin</item>
+        <item>Trstenik</item>
+        <item>Ćuprija</item>
+        <item>Futog</item>
+        <item>Šid</item>
+    </string-array>
+
+    <string-array name="cat_1">
+        <item>--</item>
+        <item>Aksesoari</item>
+        <item>Muška odeća</item>
+        <item>Ženska odeća</item>
+        <item>Kućni ljubimci</item>
+        <item>Kuće</item>
+        <item>Stanovi</item>
+        <item>Tehnika</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="tehnika">
+        <item>--</item>
+        <item>Laptopovi</item>
+        <item>Monitori</item>
+        <item>Kompjuteri</item>
+        <item>Računarska oprema</item>
+        <item>Slušalice</item>
+        <item>Zvučnici</item>
+        <item>Bela tehnika</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="kucni_ljubimci">
+        <item>--</item>
+        <item>Psi</item>
+        <item>Mačke</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="zenska_odeca">
+        <item>--</item>
+        <item>Haljine</item>
+        <item>Suknje</item>
+        <item>Pantalone</item>
+        <item>Majice</item>
+        <item>Džemperi</item>
+        <item>Košulje</item>
+        <item>Patike</item>
+        <item>Cipele</item>
+        <item>Sandale</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="muska_odeca">
+        <item>--</item>
+        <item>Pantalone</item>
+        <item>Majice</item>
+        <item>Džemperi</item>
+        <item>Košulje</item>
+        <item>Duksevi</item>
+        <item>Patike</item>
+        <item>Cipele</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="aksesoari">
+        <item>--</item>
+        <item>Torbe</item>
+        <item>Rančevi</item>
+        <item>Ogrlice</item>
+        <item>Narukvice</item>
+        <item>Prstenje</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="stanovi">
+        <item>--</item>
+        <item>Izdavanje</item>
+        <item>Prodaja</item>
+    </string-array>
+
+    <string-array name="kuce">
+        <item>--</item>
+        <item>Izdavanje</item>
+        <item>Prodaja</item>
+    </string-array>
+
+    <string-array name="ostalo">
+        <item>--</item>
+        <item>Ostalo</item>
+    </string-array>
+
+    <string-array name="__">
+        <item>--</item>
+    </string-array>
+
+</resources>

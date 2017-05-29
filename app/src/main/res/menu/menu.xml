@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:appcompat="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_home"
+        android:orderInCategory="100"
+        android:title="@string/menu_home"
+        appcompat:showAsAction="always"
+        android:icon="@mipmap/ic_home_black_24dp" />
+
+    <item
+        android:id="@+id/action_add"
+        android:orderInCategory="100"
+        android:title="@string/menu_add"
+        appcompat:showAsAction="always"
+        android:icon="@mipmap/ic_add_circle_outline_black_24dp" />
+
+    <item
+        android:id="@+id/action_search"
+        android:orderInCategory="100"
+        android:title="@string/menu_search"
+        appcompat:showAsAction="always"
+        android:icon="@mipmap/ic_search_black_24dp" />
+
+    <item
+        android:id="@+id/action_login"
+        android:orderInCategory="1"
+        android:title="@string/menu_login"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="4"
+        android:title="@string/menu_logout"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="3"
+        android:title="@string/menu_settings"
+        app:showAsAction="never"
+        android:icon="@mipmap/ic_settings_black_24dp" />
+    <item
+        android:id="@+id/action_user"
+        android:orderInCategory="2"
+        android:title="@string/menu_profile"
+        app:showAsAction="never"
+        android:icon="@mipmap/ic_account_circle_black_24dp" />
+</menu>
