@@ -5,7 +5,7 @@ package com.example.ivana.oglasi.Classes;
  */
 
 public class DropboxCredentials {
-    public static String AppKey="5911ab1dff21b5017c86daaa";
-    public static String API_ID="ygrvukjpli1fs6p";
-    public static String API_KEY="qd6c11dan34caef";
+    public static String AppKey="592c0a6b64f3e92e02b2708e";
+    public static String API_ID="d6gdiej9xeph66b";
+    public static String API_KEY="ovdm8bu120oc1lq";
 }
