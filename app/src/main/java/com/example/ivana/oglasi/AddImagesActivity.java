@@ -34,6 +34,7 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.UnsavedRevision;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 import com.example.ivana.oglasi.Classes.ImageSaver;
 
@@ -67,8 +68,8 @@ public class AddImagesActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        CloudRail.setAppKey("5911ab1dff21b5017c86daaa");
-        dropbox = new Dropbox(getApplicationContext(), "ygrvukjpli1fs6p", "qd6c11dan34caef");
+        CloudRail.setAppKey(DropboxCredentials.AppKey);
+        dropbox = new Dropbox(getApplicationContext(), DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         mLinearAddImages=(LinearLayout)findViewById(R.id.linear_add_images);
         mArrayUri = new ArrayList<>();

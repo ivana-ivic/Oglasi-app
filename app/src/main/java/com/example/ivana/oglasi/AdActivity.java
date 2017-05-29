@@ -41,6 +41,7 @@ import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 import com.example.ivana.oglasi.Classes.ImageSaver;
 
@@ -96,8 +97,8 @@ public class AdActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        CloudRail.setAppKey("5911ab1dff21b5017c86daaa");
-        dropbox = new Dropbox(AdActivity.this, "ygrvukjpli1fs6p", "qd6c11dan34caef");
+        CloudRail.setAppKey(DropboxCredentials.AppKey);
+        dropbox = new Dropbox(AdActivity.this, DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         adId=getIntent().getExtras().getString("AD_ID");
         final Document adDoc= DatabaseInstance.getInstance().database.getExistingDocument(adId);
@@ -572,7 +573,7 @@ public class AdActivity extends AppCompatActivity {
                 try {
                     URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
                     pullAd = DatabaseInstance.getInstance().database.createPullReplication(url);
-                    pullAd.setContinuous(false); //TODO postavi na true da bi se ispisalo "imate nove oglase"
+                    pullAd.setContinuous(false);
                     Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
                     pullAd.setAuthenticator(auth);
                     List<String> docIds=new ArrayList<>();

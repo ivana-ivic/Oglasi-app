@@ -45,6 +45,7 @@ import com.couchbase.lite.auth.BasicAuthenticator;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 import com.example.ivana.oglasi.Classes.HomeListAdapter;
 import com.example.ivana.oglasi.Classes.HomeListItemData;
@@ -105,29 +106,10 @@ public class HomeActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        CloudRail.setAppKey("5911ab1dff21b5017c86daaa");
-        dropbox = new Dropbox(getApplicationContext(), "ygrvukjpli1fs6p", "qd6c11dan34caef");
+        CloudRail.setAppKey(DropboxCredentials.AppKey);
+        dropbox = new Dropbox(getApplicationContext(), DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         androidContext = new AndroidContext(this);
-
-//        DatabaseInstance.getInstance().deleteDatabase(); //TODO obrisi ovo!!!
-//        int numOfDoc=DatabaseInstance.getInstance().database.getDocumentCount();
-
-//        DatabaseInstance.getInstance().tryPull("ads_counter");
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                lastLoadedAdId=startAdIndex();
-//                homeListAdapter=new HomeListAdapter(getApplicationContext(),R.layout.home_list_item);
-//                footerAdded=false;
-//                loadedMore=false;
-//                homeListView.removeFooterView(mLoadMore);
-////                tryAdsCounterPull();
-//                loadAds();
-//            }
-//        });
 
         adsToTop=(FloatingActionButton)findViewById(R.id.floatingActionButton_adsToTop);
         adsToTop.setVisibility(View.GONE);
@@ -251,7 +233,6 @@ public class HomeActivity extends AppCompatActivity {
                 counterProps.putAll(adsCounter.getProperties());
                 ids=(ArrayList<String>)counterProps.get("ids");
 
-                //todo izbaci iz ids id-eve koji nisu u bazi
                 ArrayList<String> viewAdIds=new ArrayList<>();
                 Query queryData = DatabaseInstance.getInstance().adsView().createQuery();
                 queryData.setMapOnly(true);
@@ -274,7 +255,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 }
 
-                lastLoadedAdId=ids.get(ids.size()-1); //TODO ovako ili sa startAdIndex()
+                lastLoadedAdId=ids.get(ids.size()-1);
                 adsLoadedCounter=ids.size();
 
                 this.loadAds();

@@ -28,6 +28,7 @@ import com.couchbase.lite.auth.BasicAuthenticator;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 
 import java.io.File;
@@ -60,8 +61,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        CloudRail.setAppKey("5911ab1dff21b5017c86daaa");
-        dropbox = new Dropbox(getApplicationContext(), "ygrvukjpli1fs6p", "qd6c11dan34caef");
+        CloudRail.setAppKey(DropboxCredentials.AppKey);
+        dropbox = new Dropbox(getApplicationContext(), DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         mEditUser =(ImageButton)findViewById(R.id.imageButton_editUser);
         mDeleteUser =(ImageButton)findViewById(R.id.imageButton_deleteUser);

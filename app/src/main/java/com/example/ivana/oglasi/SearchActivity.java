@@ -38,6 +38,7 @@ import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.support.LazyJsonArray;
 import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 import com.example.ivana.oglasi.Classes.HomeListAdapter;
 import com.example.ivana.oglasi.Classes.HomeListItemData;
@@ -82,8 +83,8 @@ public class SearchActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        CloudRail.setAppKey("5911ab1dff21b5017c86daaa");
-        dropbox = new Dropbox(getApplicationContext(), "ygrvukjpli1fs6p", "qd6c11dan34caef");
+        CloudRail.setAppKey(DropboxCredentials.AppKey);
+        dropbox = new Dropbox(getApplicationContext(), DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         if(Helper.isNetworkAvailable(getApplicationContext())){
             pullProgress=ProgressDialog.show(SearchActivity.this,"Sačekajte","Priprema podataka",true,false);

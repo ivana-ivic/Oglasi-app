@@ -16,7 +16,6 @@ import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.ContinuousPushService;
 import com.example.ivana.oglasi.HomeActivity;
 import com.example.ivana.oglasi.R;
-import com.example.ivana.oglasi.StorageTestActivity;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,7 +45,6 @@ public class DatabaseInstance {
     private DatabaseInstance(){
         try{
             this.manager = new Manager(HomeActivity.androidContext, Manager.DEFAULT_OPTIONS);
-//            this.manager = new Manager(StorageTestActivity.androidContext, Manager.DEFAULT_OPTIONS); //TODO OBRISI!!!!!
             this.database=this.manager.getDatabase(DB_NAME);
         } catch(Exception e){
             Log.e(TAG, e.getMessage());
