@@ -1,5 +1,6 @@
 package com.example.ivana.oglasi;
 
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -60,6 +61,7 @@ public class AddImagesActivity extends AppCompatActivity {
     CloudStorage dropbox;
     int uriCounter=0;
     RelativeLayout initialLayout;
+    ProgressDialog uploadProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,65 +165,81 @@ public class AddImagesActivity extends AppCompatActivity {
                     alert11.show();
                 }
                 else{
-                    final Document adDoc= DatabaseInstance.getInstance().database.getExistingDocument(adId);
-                    Map<String,Object> adProps=new HashMap<>();
-                    adProps.putAll(adDoc.getProperties());
-                    List<String> imagesLinks=(ArrayList<String>)adProps.get("images");
+                    if(uriCounter!=0){
+                        uploadProgress=new ProgressDialog(AddImagesActivity.this);
+                        uploadProgress.setTitle("Sačekajte");
+                        uploadProgress.setMessage("Dodavanje slika...");
+                        uploadProgress.setProgress(0);
+                        uploadProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                        uploadProgress.setIndeterminate(true);
+                        uploadProgress.show();
 
-                    for(int i=0;i<uriCounter;i++) {
-                        Uri mImageUri=imageURIs[i];
-                        if(mImageUri!=null){
-                            String fileName=Helper.getFileName(AddImagesActivity.this,mImageUri);
-                            Bitmap bm=Helper.decodeSampledBitmapFromUri(mImageUri,AddImagesActivity.this,300,300);
+                        final Document adDoc= DatabaseInstance.getInstance().database.getExistingDocument(adId);
+                        Map<String,Object> adProps=new HashMap<>();
+                        adProps.putAll(adDoc.getProperties());
+                        List<String> imagesLinks=(ArrayList<String>)adProps.get("images");
 
-                            //save image locally
-                            new ImageSaver(getApplicationContext()).setFileName(fileName).setDirectoryName(adId).setExternal(true).save(bm);
+                        for(int i=0;i<uriCounter;i++) {
+                            Uri mImageUri=imageURIs[i];
+                            if(mImageUri!=null){
+                                String fileName=Helper.getFileName(AddImagesActivity.this,mImageUri);
+                                Bitmap bm=Helper.decodeSampledBitmapFromUri(mImageUri,AddImagesActivity.this,300,300);
 
-                            imagesLinks.add(adId+"/"+fileName);
-                        }
-                    }
+                                //save image locally
+                                new ImageSaver(getApplicationContext()).setFileName(fileName).setDirectoryName(adId).setExternal(true).save(bm);
 
-                    adProps.put("images",imagesLinks);
-                    try{
-                        adDoc.putProperties(adProps);
-                    }
-                    catch (CouchbaseLiteException e){
-                        Log.e("Oglasi",e.getMessage());
-                    }
-
-                    Intent intent=new Intent(AddImagesActivity.this,UserAdsActivity.class);
-                    startActivity(intent);
-
-                    new Thread(){
-                        @Override
-                        public void run(){
-
-                            for(int i=0;i<uriCounter;i++){
-                                Uri mImageUri=imageURIs[i];
-                                if(mImageUri!=null){
-                                    try {
-                                        String fileName=Helper.getFileName(AddImagesActivity.this,mImageUri);
-
-                                        InputStream is = getApplicationContext().getContentResolver().openInputStream(mImageUri);
-                                        long size=is.available();
-
-                                        if(!dropbox.exists("/Oglasi/"+adId)){
-                                            dropbox.createFolder("/Oglasi/"+adId);
-                                        }
-                                        if(dropbox.exists("/Oglasi/"+adId+"/"+fileName)){
-                                            dropbox.upload("/Oglasi/"+adId+"/"+fileName,is,size,true);
-                                        }
-                                        else{
-                                            dropbox.upload("/Oglasi/"+adId+"/"+fileName,is,size,false);
-                                        }
-
-                                    } catch (Exception e) {
-                                        Log.e("Oglasi",e.getMessage());
-                                    }
-                                }
+                                imagesLinks.add(adId+"/"+fileName);
                             }
                         }
-                    }.start();
+
+                        adProps.put("images",imagesLinks);
+                        try{
+                            adDoc.putProperties(adProps);
+                        }
+                        catch (CouchbaseLiteException e){
+                            Log.e("Oglasi",e.getMessage());
+                        }
+
+                        new Thread(){
+                            @Override
+                            public void run(){
+
+                                for(int i=0;i<uriCounter;i++){
+                                    Uri mImageUri=imageURIs[i];
+                                    if(mImageUri!=null){
+                                        try {
+                                            String fileName=Helper.getFileName(AddImagesActivity.this,mImageUri);
+
+                                            InputStream is = getApplicationContext().getContentResolver().openInputStream(mImageUri);
+                                            long size=is.available();
+
+                                            if(!dropbox.exists("/Oglasi/"+adId)){
+                                                dropbox.createFolder("/Oglasi/"+adId);
+                                            }
+                                            if(dropbox.exists("/Oglasi/"+adId+"/"+fileName)){
+                                                dropbox.upload("/Oglasi/"+adId+"/"+fileName,is,size,true);
+                                            }
+                                            else{
+                                                dropbox.upload("/Oglasi/"+adId+"/"+fileName,is,size,false);
+                                            }
+
+                                        } catch (Exception e) {
+                                            Log.e("Oglasi",e.getMessage());
+                                        }
+                                    }
+                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        uploadProgress.dismiss();
+
+                                        Intent intent=new Intent(AddImagesActivity.this,UserAdsActivity.class);
+                                        startActivity(intent);
+                                    }
+                                });
+                            }
+                        }.start();
+                    }
                 }
             }
         });

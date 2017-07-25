@@ -69,6 +69,14 @@ public class AdCounterPullService extends Service {
                                 Intent intent=new Intent("com.example.ivana.oglasi");
                                 intent.putExtra("counterChanged", true);
                                 intent.putExtra("ids", ids);
+                                intent.putExtra("newAdsExist", false);
+                                sendBroadcast(intent);
+                            }
+                            else{
+                                Intent intent=new Intent("com.example.ivana.oglasi");
+                                intent.putExtra("counterChanged", true);
+                                intent.putExtra("ids", ids);
+                                intent.putExtra("newAdsExist", false);
                                 sendBroadcast(intent);
                             }
                             if(newIds.size()>ids.size()){
@@ -77,6 +85,7 @@ public class AdCounterPullService extends Service {
                                 Intent intent=new Intent("com.example.ivana.oglasi");
                                 intent.putExtra("counterChanged", true);
                                 intent.putExtra("ids", ids);
+                                intent.putExtra("newAdsExist", true);
                                 sendBroadcast(intent);
                             }
                         }

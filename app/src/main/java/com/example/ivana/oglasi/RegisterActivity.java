@@ -1,6 +1,8 @@
 package com.example.ivana.oglasi;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,9 +16,14 @@ import android.widget.Toast;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
+import com.couchbase.lite.auth.Authenticator;
+import com.couchbase.lite.auth.BasicAuthenticator;
+import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.Helper;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +40,8 @@ public class RegisterActivity extends AppCompatActivity {
     EditText mPassword;
     EditText mRepeatPassword;
     Button mRegister;
+    boolean usernamesPulled=false;
+    Replication pullUsernames;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,15 +79,64 @@ public class RegisterActivity extends AppCompatActivity {
                     success=false;
                 } else{
                     mUsername.setError(null);
-                    Document user=DatabaseInstance.getInstance().database.getExistingDocument(mUsername.getText().toString());
-                    if(user!=null){
-                        mUsername.setError("Korisnički nalog sa ovim imenom već postoji");
-                        Map<String, Object> properties=new HashMap<String, Object>();
-                        properties.putAll(user.getProperties());
-                        if(properties.get("email").equals(mEmail.getText().toString())){
-                            mEmail.setError("Korisnički nalog sa ovom email adresom već postoji");
+                    if(Helper.isNetworkAvailable(getApplicationContext())){
+                        try{
+                            URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
+                            pullUsernames = DatabaseInstance.getInstance().database.createPullReplication(url);
+                            pullUsernames.setContinuous(false);
+                            Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
+                            pullUsernames.setAuthenticator(auth);
+                            List<String> ids=new ArrayList<>();
+                            ids.add("usernames");
+                            pullUsernames.setDocIds(ids);
+                            pullUsernames.start();
+
+                            pullUsernames.addChangeListener(new Replication.ChangeListener() {
+                                @Override
+                                public void changed(Replication.ChangeEvent event) {
+                                    boolean active = (pullUsernames.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                    if (!active){
+                                        usernamesPulled=true;
+                                    }
+                                }
+                            });
+
+                            while(!usernamesPulled){
+                                //wait...
+                            }
+
+
+                        } catch(Exception e){
+                            Log.e("Oglasi",e.getMessage());
                         }
+
+                        Document usernamesDoc=DatabaseInstance.getInstance().database.getExistingDocument("usernames");
+                        ArrayList<String> usernames=(ArrayList<String>)usernamesDoc.getProperties().get("ids");
+                        if(usernames.contains(mUsername.getText().toString())){
+                            mUsername.setError("Korisnički nalog sa ovim imenom već postoji");
+                            success=false;
+                        }
+                        else{
+                            mUsername.setError(null);
+                        }
+                    }
+                    else{
                         success=false;
+                        AlertDialog.Builder builder1 = new AlertDialog.Builder(RegisterActivity.this);
+                        builder1.setTitle("Registracija");
+                        builder1.setMessage("Morate biti povezani na internet kako bi se proverilo da li je korisnički ime zauzeto.");
+                        builder1.setCancelable(true);
+
+                        builder1.setNeutralButton(
+                                "Ok",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                        AlertDialog alert11 = builder1.create();
+                        alert11.show();
                     }
                 }
 
@@ -108,6 +166,14 @@ public class RegisterActivity extends AppCompatActivity {
                 }
 
                 if(success){
+
+                    Document usernamesDoc=DatabaseInstance.getInstance().database.getExistingDocument("usernames");
+                    Map<String,Object> usernamesProps=new HashMap<>();
+                    usernamesProps.putAll(usernamesDoc.getProperties());
+                    ArrayList<String> usernames=(ArrayList<String>) usernamesProps.get("ids");
+                    usernames.add(mUsername.getText().toString());
+                    usernamesProps.put("ids", usernames);
+
                     Document document = DatabaseInstance.getInstance().database.getDocument(mUsername.getText().toString());
                     Map<String, Object> map = new HashMap<String, Object>();
                     map.put("email", mEmail.getText().toString());
@@ -118,8 +184,11 @@ public class RegisterActivity extends AppCompatActivity {
                     map.put("description", mDescription.getText().toString());
                     ArrayList<String> ads=new ArrayList<String>();
                     map.put("ads",ads);
+                    map.put("deleted",false);
                     try {
                         document.putProperties(map);
+                        usernamesDoc.putProperties(usernamesProps);
+                        Helper.resolveUsernamesListConflicts();
                     } catch (CouchbaseLiteException e) {
                         Log.e("Oglasi", e.getMessage());
                     }

@@ -1,5 +1,6 @@
 package com.example.ivana.oglasi;
 
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -60,6 +61,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -86,6 +90,9 @@ public class HomeActivity extends AppCompatActivity {
     boolean thumbnailsDownloaded=false;
     CloudStorage dropbox;
     ProgressBar homeLoading;
+    boolean userPulled=false;
+    int adsCount=0;
+    boolean refresh=false;
 
     public BroadcastReceiver receiver=new BroadcastReceiver() {
         @Override
@@ -94,6 +101,8 @@ public class HomeActivity extends AppCompatActivity {
             if(result){
                 ids.clear();
                 ids.addAll((ArrayList<String>)intent.getExtras().get("ids"));
+                adsCount=ids.size();
+
                 new ResolveAdCounterConflictsTask().execute();
             }
         }
@@ -110,6 +119,21 @@ public class HomeActivity extends AppCompatActivity {
         dropbox = new Dropbox(getApplicationContext(), DropboxCredentials.API_ID, DropboxCredentials.API_KEY);
 
         androidContext = new AndroidContext(this);
+
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(refresh){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adsToTop.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            }
+        }, 0, 60000);
 
         adsToTop=(FloatingActionButton)findViewById(R.id.floatingActionButton_adsToTop);
         adsToTop.setVisibility(View.GONE);
@@ -142,6 +166,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 loadedMore=true;
                 if(Helper.isNetworkAvailable(getApplicationContext())){
+                    homeLoading.setVisibility(View.VISIBLE);
                     tryAdsPull();
                 }
                 else{
@@ -193,6 +218,8 @@ public class HomeActivity extends AppCompatActivity {
                                 for(int i=ids.size()-1-adsLoadedCounter+10;i>=ids.size()-adsLoadedCounter;i--){
                                     Document ad=DatabaseInstance.getInstance().database.getExistingDocument(ids.get(i));
                                     if(ad!=null){
+                                        Helper.resolveAdConflicts(ids.get(i));
+                                        ad=DatabaseInstance.getInstance().database.getExistingDocument(ids.get(i));
                                         Map<String,Object> adProps=new HashMap();
                                         adProps.putAll(ad.getProperties());
                                         List<String> adImageLinks=(ArrayList<String>)adProps.get("images");
@@ -216,8 +243,10 @@ public class HomeActivity extends AppCompatActivity {
                         }.start();
                     }
                     loadAds();
-                    Intent startPush=new Intent(getBaseContext(),ContinuousPushService.class);
-                    startService(startPush);
+                    if(!isMyServiceRunning(ContinuousPushService.class)){
+                        Intent startPush=new Intent(getBaseContext(),ContinuousPushService.class);
+                        startService(startPush);
+                    }
                 } else {
                     double total = pull.getCompletedChangesCount();
                     progressDialog.setMax((int) total);
@@ -260,10 +289,103 @@ public class HomeActivity extends AppCompatActivity {
 
                 this.loadAds();
             }
+            else{
+                homeLoading.setVisibility(View.GONE);
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(HomeActivity.this);
+                builder1.setTitle("Nema podataka");
+                builder1.setMessage("Podaci ne postoje u telefonu. Povežite se na internet kako bi učitali podatke.");
+                builder1.setCancelable(true);
+
+                builder1.setNeutralButton(
+                        "Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                AlertDialog alert11 = builder1.create();
+                alert11.show();
+            }
         }
         else{
-            Intent startPullingCounter=new Intent(getBaseContext(),AdCounterPullService.class);
-            startService(startPullingCounter);
+            if(!isMyServiceRunning(AdCounterPullService.class)){
+                Intent startPullingCounter=new Intent(getBaseContext(),AdCounterPullService.class);
+                startService(startPullingCounter);
+            }
+
+            try{
+                URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
+                final Replication pullDeletedUsers = DatabaseInstance.getInstance().database.createPullReplication(url);
+                pullDeletedUsers.setContinuous(false);
+                Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
+                pullDeletedUsers.setAuthenticator(auth);
+                List<String> docIds=new ArrayList<>();
+                docIds.add("users_deleted");
+                pullDeletedUsers.setDocIds(docIds);
+                pullDeletedUsers.start();
+
+                pullDeletedUsers.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        boolean active=pullDeletedUsers.getStatus()== Replication.ReplicationStatus.REPLICATION_ACTIVE;
+                        if(!active){
+//                            deletedUsersListPulled=true;
+                            Helper.resolveDeletedUsersListConflicts();
+                            Document deletedUsersDoc=DatabaseInstance.getInstance().database.getExistingDocument("users_deleted");
+                            Map<String,Object> deletedUsersProps=new HashMap<>();
+                            deletedUsersProps.putAll(deletedUsersDoc.getProperties());
+                            ArrayList<String> deletedUsernames=(ArrayList<String>)deletedUsersProps.get("usernames");
+
+                            try{
+                                for(int i=0;i<deletedUsernames.size();i++){
+                                    Document user=DatabaseInstance.getInstance().database.getExistingDocument(deletedUsernames.get(i));
+                                    if(user!=null){
+                                        if(((boolean)user.getProperties().get("deleted"))==false){
+                                            Map<String,Object> userProps=new HashMap<>();
+                                            userProps.putAll(user.getProperties());
+
+                                            ArrayList<String> userAds=(ArrayList<String>)userProps.get("ads");
+                                            for(int j=0;j<userAds.size();j++){
+                                                Document ad=DatabaseInstance.getInstance().database.getExistingDocument(userAds.get(j));
+                                                if(ad!=null){
+                                                    if(((boolean)ad.getProperties().get("deleted"))==false){
+                                                        Map<String,Object> adProps=new HashMap<>();
+                                                        adProps.putAll(ad.getProperties());
+                                                        adProps.put("deleted",true);
+                                                        ad.putProperties(adProps);
+                                                        Helper.resolveAdConflicts(ad.getId());
+                                                    }
+                                                }
+                                            }
+
+                                            userProps.put("deleted", true);
+                                            user.putProperties(userProps);
+                                            Helper.resolveUserConflicts(user.getId());
+                                        }
+                                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomeActivity.this);
+                                        if(preferences.getString("Username", "").equals(deletedUsernames.get(i))){
+                                            SharedPreferences.Editor editor = preferences.edit();
+                                            editor.clear();
+                                            editor.commit();
+                                            Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    }
+                                }
+                            } catch(CouchbaseLiteException e){
+                                Log.e("Oglasi",e.getMessage());
+                            }
+
+                        }
+
+                    }
+                });
+
+            } catch(Exception e){
+                Log.e(TAG, e.getMessage());
+            }
+
         }
 
         homeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -286,9 +408,26 @@ public class HomeActivity extends AppCompatActivity {
                         pullUser.setDocIds(docIds);
                         pullUser.start();
 
-                        while(DatabaseInstance.getInstance().database.getExistingDocument((String)adProperties.get("user_id"))==null){
+                        pullUser.addChangeListener(new Replication.ChangeListener() {
+                            @Override
+                            public void changed(Replication.ChangeEvent event) {
+                                boolean active=deletedAdsPull.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE;
+                                if(!active){
+                                    userPulled=true;
+                                }
+                            }
+                        });
+
+                        while(!userPulled){
                             //wait...
                         }
+                        userPulled=false;
+
+                        Helper.resolveUserConflicts((String)adProperties.get("user_id"));
+
+//                        while(DatabaseInstance.getInstance().database.getExistingDocument((String)adProperties.get("user_id"))==null){
+//                            //wait...
+//                        }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     }
@@ -334,7 +473,7 @@ public class HomeActivity extends AppCompatActivity {
                 if(ad != null){
                     Map<String,Object> adProps=new HashMap<>();
                     adProps.putAll(ad.getProperties());
-                    adProps.put("_deleted",true);
+                    adProps.put("deleted",true);
                     ad.putProperties(adProps);
                 }
             }
@@ -342,6 +481,20 @@ public class HomeActivity extends AppCompatActivity {
         catch (CouchbaseLiteException e){
             Log.e("Oglasi",e.getMessage());
         }
+
+        new Thread(){
+            @Override
+            public void run(){
+                for(int i=0;i<deletedIds.size();i++){
+                    Document ad=DatabaseInstance.getInstance().database.getExistingDocument(deletedIds.get(i));
+                    if(ad!=null){
+                        if(dropbox.exists("/Oglasi/"+ad.getId())){
+                            dropbox.delete("/Oglasi/"+ad.getId());
+                        }
+                    }
+                }
+            }
+        }.start();
     }
 
     public void tryAdsPull(){
@@ -395,7 +548,7 @@ public class HomeActivity extends AppCompatActivity {
         thumbnailsDownloaded=false;
         for(int i=ids.size()-1;i>=ids.size()-adsLoadedCounter;i--){
             Document doc=DatabaseInstance.getInstance().database.getExistingDocument(ids.get(i));
-            if(doc!=null){
+            if(doc!=null && (boolean)doc.getProperties().get("deleted")==false){
                 Map<String, Object> properties=new HashMap<String, Object>();
                 properties.putAll(doc.getProperties());
                 ArrayList<String> images=(ArrayList<String>)properties.get("images");
@@ -491,19 +644,29 @@ public class HomeActivity extends AppCompatActivity {
         protected void onPostExecute(final Boolean success) {
             if(success){
 
+                ignoreDeletedAds();
+
                 if(initialAdsLoading){
                     initialAdsLoading=false;
                     adsLoadedCounter=0;
 
-                    ignoreDeletedAds();
-
                     tryAdsPull();
                 }
                 else{
-                    adsToTop.setVisibility(View.VISIBLE);
+                    refresh=true;
                 }
             }
         }
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -569,10 +732,12 @@ public class HomeActivity extends AppCompatActivity {
                         //wait...
                     }
 
+
                 } catch (Exception e) {
                     Log.e("Oglasi", e.getMessage());
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(HomeActivity.this, UserActivity.class);
             startActivity(intent);
         }

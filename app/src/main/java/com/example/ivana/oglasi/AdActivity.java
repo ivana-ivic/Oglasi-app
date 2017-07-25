@@ -229,29 +229,30 @@ public class AdActivity extends AppCompatActivity {
                 builder1.setPositiveButton("Da", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(Helper.isNetworkAvailable(getApplicationContext())){
-                            Document ad= DatabaseInstance.getInstance().database.getExistingDocument(getIntent().getExtras().getString("AD_ID"));
-                            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(AdActivity.this);
-                            String username = preferences.getString("Username", "");
-                            Document user= DatabaseInstance.getInstance().database.getExistingDocument(username);
-                            Map<String, Object> userProperties=new HashMap<String, Object>();
-                            userProperties.putAll(user.getProperties());
-                            ArrayList<String> ads=(ArrayList<String>)userProperties.get("ads");
 
-                            Map<String,Object> adProperties=new HashMap<>();
-                            adProperties.putAll(ad.getProperties());
-                            adProperties.put("_deleted",true);
+                        Document ad= DatabaseInstance.getInstance().database.getExistingDocument(getIntent().getExtras().getString("AD_ID"));
+                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(AdActivity.this);
+                        String username = preferences.getString("Username", "");
+//                        Document user= DatabaseInstance.getInstance().database.getExistingDocument(username);
+//                        Map<String, Object> userProperties=new HashMap<String, Object>();
+//                        userProperties.putAll(user.getProperties());
+//                        ArrayList<String> ads=(ArrayList<String>)userProperties.get("ads");
 
-                            //delete all images
-                            final ArrayList<String> adImages=(ArrayList<String>)adProperties.get("images");
-                            boolean deleted=false;
-                            if(adImages.size()!=0){
-                                String[] folderAndFileName=adImages.get(0).split("/");
-                                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), folderAndFileName[0]);
-                                if(dir.exists()){
-                                    deleted=Helper.deleteRecursive(dir);
-                                }
+                        Map<String,Object> adProperties=new HashMap<>();
+                        adProperties.putAll(ad.getProperties());
+                        adProperties.put("deleted",true);
 
+                        //delete all images
+                        final ArrayList<String> adImages=(ArrayList<String>)adProperties.get("images");
+                        boolean deleted=false;
+                        if(adImages.size()!=0){
+                            String[] folderAndFileName=adImages.get(0).split("/");
+                            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), folderAndFileName[0]);
+                            if(dir.exists()){
+                                deleted=Helper.deleteRecursive(dir);
+                            }
+
+                            if(Helper.isNetworkAvailable(getApplicationContext())){
                                 new Thread(){
                                     @Override
                                     public void run(){
@@ -262,44 +263,28 @@ public class AdActivity extends AppCompatActivity {
                                     }
                                 }.start();
                             }
-
-                            Document adsDeleted=DatabaseInstance.getInstance().database.getExistingDocument("ads_deleted");
-                            Map<String,Object> adsDeletedProperties=new HashMap<String, Object>();
-                            adsDeletedProperties.putAll(adsDeleted.getProperties());
-                            ArrayList<String> deletedIds=(ArrayList<String>)adsDeletedProperties.get("ids");
-                            deletedIds.add(ad.getId());
-                            adsDeletedProperties.put("ids",deletedIds);
-
-                            try{
-                                adsDeleted.putProperties(adsDeletedProperties);
-                                ad.putProperties(adProperties);
-                                ads.remove(ad.getId());
-                                userProperties.put("ads",ads);
-                                user.putProperties(userProperties);
-                            } catch(Exception e){
-                                return;
-                            }
-
-                            new ResolveAdCounterConflictsTask().execute();
                         }
-                        else{
-                            AlertDialog.Builder builder2 = new AlertDialog.Builder(AdActivity.this);
-                            builder2.setMessage("Oglasi mogu biti obrisani samo kada ste povezani na internet.");
-                            builder2.setCancelable(true);
 
-                            builder2.setNeutralButton(
-                                    "Ok",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            dialog.cancel();
-                                            Intent intent = new Intent(AdActivity.this, UserAdsActivity.class);
-                                            startActivity(intent);
-                                        }
-                                    });
+                        Document adsDeleted=DatabaseInstance.getInstance().database.getExistingDocument("ads_deleted");
+                        Map<String,Object> adsDeletedProperties=new HashMap<String, Object>();
+                        adsDeletedProperties.putAll(adsDeleted.getProperties());
+                        ArrayList<String> deletedIds=(ArrayList<String>)adsDeletedProperties.get("ids");
+                        deletedIds.add(ad.getId());
+                        adsDeletedProperties.put("ids",deletedIds);
 
-                            AlertDialog alert12 = builder2.create();
-                            alert12.show();
+                        try{
+                            adsDeleted.putProperties(adsDeletedProperties);
+                            ad.putProperties(adProperties);
+//                            ads.remove(ad.getId());
+//                            userProperties.put("ads",ads);
+//                            user.putProperties(userProperties);
+                        } catch(Exception e){
+                            return;
                         }
+
+                        Helper.resolveAdConflicts(ad.getId());
+
+                        new ResolveAdCounterConflictsTask().execute();
                     }
                 });
 
@@ -362,7 +347,7 @@ public class AdActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(AdActivity.this,SearchActivity.class);
-                intent.putExtra("ad_cat1",mAdCategories2.getText().toString());
+                intent.putExtra("cat1",mAdCategories2.getText().toString());
                 startActivity(intent);
             }
         });
@@ -371,8 +356,8 @@ public class AdActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(AdActivity.this,SearchActivity.class);
-                intent.putExtra("ad_cat1",mAdCategories2.getText().toString());
-                intent.putExtra("ad_cat2",mAdCategories3.getText().toString());
+                intent.putExtra("cat1",mAdCategories2.getText().toString());
+                intent.putExtra("cat2",mAdCategories3.getText().toString());
                 startActivity(intent);
             }
         });
@@ -526,39 +511,42 @@ public class AdActivity extends AppCompatActivity {
 
     public class ResolveAdCounterConflictsTask extends AsyncTask<Void,Void,Boolean> {
         protected Boolean doInBackground(Void... params) {
-            try {
-                URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
-                pullCounter = DatabaseInstance.getInstance().database.createPullReplication(url);
-                pullCounter.setContinuous(false);
-                Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
-                pullCounter.setAuthenticator(auth);
-                List<String> docIds=new ArrayList<>();
-                docIds.add("ads_counter");
-                pullCounter.setDocIds(docIds);
-                if(Helper.isNetworkAvailable(getApplicationContext())){
-                    pullCounter.start();
+            if(Helper.isNetworkAvailable(getApplicationContext())){
+                try {
+                    URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
+                    pullCounter = DatabaseInstance.getInstance().database.createPullReplication(url);
+                    pullCounter.setContinuous(false);
+                    Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
+                    pullCounter.setAuthenticator(auth);
+                    List<String> docIds=new ArrayList<>();
+                    docIds.add("ads_counter");
+                    pullCounter.setDocIds(docIds);
+                    if(Helper.isNetworkAvailable(getApplicationContext())){
+                        pullCounter.start();
 
-                    pullCounter.addChangeListener(new Replication.ChangeListener() {
-                        @Override
-                        public void changed(Replication.ChangeEvent event) {
-                            boolean active = (pullCounter.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
-                            if (!active) {
-                                counterLoaded=true;
+                        pullCounter.addChangeListener(new Replication.ChangeListener() {
+                            @Override
+                            public void changed(Replication.ChangeEvent event) {
+                                boolean active = (pullCounter.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                if (!active) {
+                                    counterLoaded=true;
+                                }
                             }
+                        });
+                        while(!counterLoaded){
+                            //wait...
                         }
-                    });
-                    while(!counterLoaded){
-                        //wait...
                     }
+                    else{
+                        Toast.makeText(AdActivity.this, "Niste povezani na internet. Oglasi koje vidite nisu ažurirani.",Toast.LENGTH_LONG).show();
+                    }
+                    Helper.resolveAdCounterConflicts();
+                } catch (Exception e) {
+                    Log.e("Oglasi", e.getMessage());
+                    return false;
                 }
-                else{
-                    Toast.makeText(AdActivity.this, "Niste povezani na internet. Oglasi koje vidite nisu ažurirani.",Toast.LENGTH_LONG).show();
-                }
-                Helper.resolveAdCounterConflicts();
-            } catch (Exception e) {
-                Log.e("Oglasi", e.getMessage());
-                return false;
             }
+
             return true;
         }
 
@@ -607,7 +595,7 @@ public class AdActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(final Boolean success) {
-            if(DatabaseInstance.getInstance().database.getExistingDocument(adId)==null){
+            if(DatabaseInstance.getInstance().database.getExistingDocument(adId)==null || (boolean)DatabaseInstance.getInstance().database.getExistingDocument(adId).getProperties().get("deleted")==true){
                 AlertDialog.Builder builder1 = new AlertDialog.Builder(AdActivity.this);
                 builder1.setMessage("Ovaj oglas više ne postoji. Bićete preusmereni na početnu stranu.");
                 builder1.setCancelable(true);
@@ -880,6 +868,7 @@ public class AdActivity extends AppCompatActivity {
                     Log.e(TAG, "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(AdActivity.this, UserActivity.class);
             startActivity(intent);
         }

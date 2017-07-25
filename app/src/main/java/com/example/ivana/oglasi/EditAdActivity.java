@@ -461,7 +461,7 @@ public class EditAdActivity extends AppCompatActivity {
                         }.start();
                     }
                     else{
-                        Toast.makeText(EditAdActivity.this,"Slike nisu dodate jer niste povezani na internet.",Toast.LENGTH_LONG).show();
+//                        Toast.makeText(EditAdActivity.this,"Slike nisu dodate jer niste povezani na internet.",Toast.LENGTH_LONG).show();
                         try{
                             updatedAd.putProperties(mapAd);
                         }
@@ -742,6 +742,7 @@ public class EditAdActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(EditAdActivity.this, UserActivity.class);
             startActivity(intent);
         }

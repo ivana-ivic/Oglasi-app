@@ -184,6 +184,7 @@ public class EditUserActivity extends AppCompatActivity {
                     Log.e("Oglasi", e.getMessage());
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(EditUserActivity.this, UserActivity.class);
             startActivity(intent);
         }

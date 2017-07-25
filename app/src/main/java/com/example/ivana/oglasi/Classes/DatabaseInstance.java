@@ -29,11 +29,11 @@ import java.util.Map;
 
 public class DatabaseInstance {
 
-    public static final String address="http://192.168.0.106:5984/";
+    public static final String address="http://192.168.0.103:5984/";
     public static final String DB_NAME = "test";
     public static final String databaseUsername = "Ivana";
     public static final String databasePassword = "ivanacouchadmin";
-    public static final String TAG = "test";
+    public static final String TAG = "Oglasi";
     public Manager manager = null;
     public Database database = null;
     Replication push;
@@ -154,7 +154,7 @@ public class DatabaseInstance {
                     new Mapper(){
                         @Override
                         public void map(Map<String, Object> document, Emitter emitter) {
-                            boolean deleted = (boolean)document.get("_deleted");
+                            boolean deleted = (boolean)document.get("deleted");
                             if(deleted){
                                 emitter.emit(document.get("_id"), 1);
                             }

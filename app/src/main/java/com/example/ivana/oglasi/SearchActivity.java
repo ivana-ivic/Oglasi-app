@@ -178,11 +178,11 @@ public class SearchActivity extends AppCompatActivity {
         adsListAdapter=new HomeListAdapter(getApplicationContext(),R.layout.home_list_item);
         searchedDocs=new ArrayList<>();
 
-        if(getIntent().getStringExtra("ad_cat1")!=null){
-            cat1=getIntent().getStringExtra("ad_cat1");
-            if(getIntent().getStringExtra("ad_cat2")!=null)
-                cat2=getIntent().getStringExtra("ad_cat2");
-        }
+//        if(getIntent().getStringExtra("ad_cat1")!=null){
+//            cat1=getIntent().getStringExtra("ad_cat1");
+//            if(getIntent().getStringExtra("ad_cat2")!=null)
+//                cat2=getIntent().getStringExtra("ad_cat2");
+//        }
 
         mSearch.setQueryHint("Naslov oglasa...");
         mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -613,6 +613,7 @@ public class SearchActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(SearchActivity.this, UserActivity.class);
             startActivity(intent);
         }

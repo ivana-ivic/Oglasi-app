@@ -29,7 +29,7 @@
     <string name="action_sign_in">Prijava</string>
     <string name="action_sign_in_short">Prijava</string>
     <string name="error_invalid_email">Email adresa nije validna</string>
-    <string name="error_invalid_password">Lozinka je prekratka</string>
+    <string name="error_invalid_password">Lozinka nije validna</string>
     <string name="error_incorrect_password">Lozinka nije validna</string>
     <string name="error_field_required">Ovo polje je obavezno</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email

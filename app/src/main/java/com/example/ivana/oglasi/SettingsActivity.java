@@ -19,6 +19,7 @@ import com.cloudrail.si.CloudRail;
 import com.cloudrail.si.interfaces.CloudStorage;
 import com.cloudrail.si.services.Dropbox;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
@@ -32,12 +33,14 @@ import com.example.ivana.oglasi.Classes.DropboxCredentials;
 import com.example.ivana.oglasi.Classes.Helper;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.example.ivana.oglasi.Classes.DatabaseInstance.DB_NAME;
 import static com.example.ivana.oglasi.Classes.DatabaseInstance.address;
@@ -88,7 +91,12 @@ public class SettingsActivity extends AppCompatActivity {
                     builder1.setPositiveButton("Da", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            userDeletionProgress=ProgressDialog.show(SettingsActivity.this,"Sačekajte","Brisanje naloga i oglasa...",true,false);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    userDeletionProgress=ProgressDialog.show(SettingsActivity.this,"Sačekajte","Brisanje naloga i oglasa...",true,false);
+                                }
+                            });
                             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
                             String username = preferences.getString("Username", "");
                             Document user= DatabaseInstance.getInstance().database.getDocument(username);
@@ -105,6 +113,8 @@ public class SettingsActivity extends AppCompatActivity {
                                 pullAds.setAuthenticator(auth);
                                 List<String> docIds=new ArrayList<>();
                                 docIds.addAll(userAds);
+                                docIds.add("users_deleted");
+                                docIds.add("ads_deleted");
                                 pullAds.setDocIds(docIds);
                                 pullAds.start();
 
@@ -126,8 +136,14 @@ public class SettingsActivity extends AppCompatActivity {
                                 //wait...
                             }
 
+                            Document deletedAdsDoc=DatabaseInstance.getInstance().database.getExistingDocument("ads_deleted");
+                            Map<String,Object> deletedAdsProps=new HashMap<String, Object>();
+                            deletedAdsProps.putAll(deletedAdsDoc.getProperties());
+                            ArrayList<String> deletedAdsList=(ArrayList<String>)deletedAdsProps.get("ids");
+
                             imagesToDelete=new ArrayList<String>();
                             for(int i=0;i<userAds.size();i++){
+
                                 Document ad=DatabaseInstance.getInstance().database.getExistingDocument(userAds.get(i));
                                 Map<String,Object> adProps=new HashMap<String, Object>();
                                 adProps.putAll(ad.getProperties());
@@ -144,7 +160,10 @@ public class SettingsActivity extends AppCompatActivity {
                                     imagesToDelete.add(adImages.get(j));
                                 }
 
-                                adProps.put("_deleted",true);
+                                adProps.put("deleted",true);
+
+                                deletedAdsList.add(ad.getId());
+                                deletedAdsProps.put("ids",deletedAdsList);
 
                                 try{
                                     ad.putProperties(adProps);
@@ -152,7 +171,11 @@ public class SettingsActivity extends AppCompatActivity {
                                 catch(CouchbaseLiteException e){
                                     Log.e("Oglasi",e.getMessage());
                                 }
+
+                                Helper.resolveAdConflicts(ad.getId());
                             }
+
+                            Helper.resolveAdCounterConflicts();
 
                             new Thread(){
                                 @Override
@@ -176,9 +199,18 @@ public class SettingsActivity extends AppCompatActivity {
                                 }
                             }.start();
 
-                            userProps.put("_deleted",true);
+                            userProps.put("deleted",true);
+
+                            Document deletedUsersDoc= DatabaseInstance.getInstance().database.getExistingDocument("users_deleted");
+                            Map<String,Object> deletedUsersProps=new HashMap<String, Object>();
+                            deletedUsersProps.putAll(deletedUsersDoc.getProperties());
+                            ArrayList<String> deletedUsersList=(ArrayList<String>)deletedUsersProps.get("usernames");
+                            deletedUsersList.add(user.getId());
+                            deletedUsersProps.put("usernames",deletedUsersList);
 
                             try{
+                                deletedAdsDoc.putProperties(deletedAdsProps);
+                                deletedUsersDoc.putProperties(deletedUsersProps);
                                 user.putProperties(userProps);
                                 SharedPreferences.Editor editor = preferences.edit();
                                 editor.clear();
@@ -187,6 +219,9 @@ public class SettingsActivity extends AppCompatActivity {
                             } catch(Exception e){
                                 Log.e("Oglasi",e.getMessage());
                             }
+
+                            Helper.resolveUserConflicts(user.getId());
+                            Helper.resolveDeletedUsersListConflicts();
                         }
                     });
 
@@ -252,6 +287,10 @@ public class SettingsActivity extends AppCompatActivity {
                                 }
 
                                 DatabaseInstance.getInstance().deleteDatabase();
+                                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.clear();
+                                editor.commit();
                                 stopService(new Intent(getApplicationContext(),AdCounterPullService.class));
                                 Intent adIntent=new Intent(SettingsActivity.this,HomeActivity.class);
                                 adIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -341,6 +380,7 @@ public class SettingsActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(SettingsActivity.this, UserActivity.class);
             startActivity(intent);
         }

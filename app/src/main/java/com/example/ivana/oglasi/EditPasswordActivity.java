@@ -170,6 +170,7 @@ public class EditPasswordActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(EditPasswordActivity.this, UserActivity.class);
             startActivity(intent);
         }

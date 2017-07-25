@@ -81,6 +81,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     private TextView mRegisterLink;
     private boolean usernamesPulled=false;
     private boolean userPulled=false;
+    Replication pullUsernames;
+    Replication pullUsers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,7 +234,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+//        return password.length() > 4;
+        return true;
     }
 
     /**
@@ -389,25 +392,30 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             if(Helper.isNetworkAvailable(getApplicationContext())){
                 try {
                     URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
-                    Replication pullUsernames = DatabaseInstance.getInstance().database.createPullReplication(url);
+                    pullUsernames = DatabaseInstance.getInstance().database.createPullReplication(url);
                     pullUsernames.setContinuous(false);
                     Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
                     pullUsernames.setAuthenticator(auth);
                     List<String> docIds=new ArrayList<>();
                     docIds.add("usernames");
+                    docIds.add("users_deleted");
                     pullUsernames.setDocIds(docIds);
                     pullUsernames.start();
 
                     pullUsernames.addChangeListener(new Replication.ChangeListener() {
                         @Override
                         public void changed(Replication.ChangeEvent event) {
-                            usernamesPulled=true;
+                            boolean active = (pullUsernames.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                            if (!active){
+                                usernamesPulled=true;
+                            }
                         }
                     });
 
-                    while(DatabaseInstance.getInstance().database.getExistingDocument("usernames")==null){
+                    while(!usernamesPulled){
                         //wait...
                     }
+                    usernamesPulled=false;
                 } catch (Exception e) {
                     Log.e("Oglasi", e.getMessage());
                 }
@@ -418,11 +426,21 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                 Map<String,Object> usernamesProps=new HashMap<>();
                 usernamesProps.putAll(usernames.getProperties());
                 ArrayList<String> userIds=(ArrayList<String>)usernamesProps.get("ids");
+
+                Document deletedUsersDoc=DatabaseInstance.getInstance().database.getExistingDocument("users_deleted");
+                ArrayList<String> deletedUserIds=(ArrayList<String>) deletedUsersDoc.getProperties().get("usernames");
+
+                for(int i=0;i<deletedUserIds.size();i++){
+                    if(userIds.contains(deletedUserIds.get(i))){
+                        userIds.remove(deletedUserIds.get(i));
+                    }
+                }
+
                 if(userIds.contains(mEmail)){
                     if(DatabaseInstance.getInstance().database.getExistingDocument(mEmail)==null && Helper.isNetworkAvailable(getApplicationContext())){
                         try{
                             URL url = new URL(DatabaseInstance.address + DatabaseInstance.DB_NAME);
-                            Replication pullUsers = DatabaseInstance.getInstance().database.createPullReplication(url);
+                            pullUsers = DatabaseInstance.getInstance().database.createPullReplication(url);
                             pullUsers.setContinuous(false);
                             Authenticator auth = new BasicAuthenticator(DatabaseInstance.databaseUsername, DatabaseInstance.databasePassword);
                             pullUsers.setAuthenticator(auth);
@@ -434,11 +452,14 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                             pullUsers.addChangeListener(new Replication.ChangeListener() {
                                 @Override
                                 public void changed(Replication.ChangeEvent event) {
-                                    userPulled=true;
+                                    boolean active = (pullUsers.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                    if (!active){
+                                        userPulled=true;
+                                    }
                                 }
                             });
 
-                            while(DatabaseInstance.getInstance().database.getExistingDocument(mEmail)==null){
+                            while(!userPulled){
                                 //wait...
                             }
                         }

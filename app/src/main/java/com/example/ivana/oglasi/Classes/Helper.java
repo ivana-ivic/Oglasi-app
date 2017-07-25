@@ -62,14 +62,10 @@ public class Helper {
         try{
             final List<SavedRevision> conflicts = doc.getConflictingRevisions();
             if (conflicts.size() > 1) {
-                // There is more than one current revision, thus a conflict!
                 DatabaseInstance.getInstance().database.runInTransaction(new TransactionalTask() {
                     @Override
                     public boolean run() {
                         try {
-                            // Come up with a merged/resolved document in some way that's
-                            // appropriate for the app. You could even just pick the body of
-                            // one of the revisions.
                             Map<String, Object> mergedProps=new HashMap<String, Object>();
                             mergedProps.putAll(conflicts.get(0).getProperties());
                             int updatedAtMerged=(int)mergedProps.get("updated_at");
@@ -78,8 +74,8 @@ public class Helper {
                             boolean reportFlag=(boolean)mergedProps.get("report_flag");
                             int reportCount=(int)mergedProps.get("report_count");
                             boolean isDeleted;
-                            if(mergedProps.containsKey("_deleted")){
-                                isDeleted=(boolean)mergedProps.get("_deleted");
+                            if(mergedProps.containsKey("deleted")){
+                                isDeleted=(boolean)mergedProps.get("deleted");
                             }
                             else{
                                 isDeleted=false;
@@ -111,14 +107,13 @@ public class Helper {
                                 if(((int)revProps.get("report_count"))>reportCount)
                                     reportCount=(int)revProps.get("report_count");
 
-                                if(revProps.containsKey("_deleted")==true)
-                                    isDeleted=(boolean)revProps.get("_deleted");
+                                if(revProps.containsKey("deleted")==true)
+                                    isDeleted=(boolean)revProps.get("deleted");
                             }
                             mergedProps.put("comments",mergedComments);
                             mergedProps.put("report_flag",reportFlag);
-                            mergedProps.put("_deleted",isDeleted);
+                            mergedProps.put("deleted",isDeleted);
 
-                            // Delete the conflicting revisions to get rid of the conflict:
                             SavedRevision current = doc.getCurrentRevision();
                             for (SavedRevision rev : conflicts) {
                                 UnsavedRevision newRev = rev.createRevision();
@@ -127,8 +122,6 @@ public class Helper {
                                 } else {
                                     newRev.setIsDeletion(true);
                                 }
-                                // saveAllowingConflict allows 'rev' to be updated even if it
-                                // is not the document's current revision.
                                 newRev.save(true);
                             }
                         } catch (CouchbaseLiteException e) {
@@ -222,6 +215,177 @@ public class Helper {
                     }
                 });
                 result=conflictsCounter.size()==1 && conflictsDeleted.size() == 1;
+            }
+        }
+        catch(CouchbaseLiteException e){
+            Log.e("Oglasi",e.getMessage());
+        }
+        return result;
+    }
+
+    public static boolean resolveUsernamesListConflicts(){
+        final Document doc= DatabaseInstance.getInstance().database.getExistingDocument("usernames");
+        boolean result=false;
+        try{
+            final List<SavedRevision> conflicts = doc.getConflictingRevisions();
+            if (conflicts.size() > 1) {
+                // There is more than one current revision, thus a conflict!
+                DatabaseInstance.getInstance().database.runInTransaction(new TransactionalTask() {
+                    @Override
+                    public boolean run() {
+                        try {
+                            // Come up with a merged/resolved document in some way that's
+                            // appropriate for the app. You could even just pick the body of
+                            // one of the revisions.
+                            Map<String, Object> mergedProps=new HashMap<String, Object>();
+                            mergedProps.putAll(conflicts.get(0).getProperties());
+
+                            ArrayList<String> mergedUsernames=(ArrayList<String>)mergedProps.get("ids");
+
+                            for(int i=1;i<conflicts.size();i++){
+                                Map<String, Object> revProps=conflicts.get(i).getProperties();
+                                ArrayList<String> revUsernames=(ArrayList<String>)revProps.get("ids");
+                                for(int j=0;j<revUsernames.size();j++){
+                                    if(!mergedUsernames.contains(revUsernames.get(j))){
+                                        mergedUsernames.add(revUsernames.get(j));
+                                    }
+                                }
+                            }
+
+                            // Delete the conflicting revisions to get rid of the conflict:
+                            SavedRevision current = doc.getCurrentRevision();
+                            for (SavedRevision rev : conflicts) {
+                                UnsavedRevision newRev = rev.createRevision();
+                                if (rev.getId().equals(current.getId())) {
+                                    newRev.setProperties(mergedProps);
+                                } else {
+                                    newRev.setIsDeletion(true);
+                                }
+                                // saveAllowingConflict allows 'rev' to be updated even if it
+                                // is not the document's current revision.
+                                newRev.save(true);
+                            }
+                        } catch (CouchbaseLiteException e) {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                result=conflicts.size()==1;
+            }
+        }
+        catch(CouchbaseLiteException e){
+            Log.e("Oglasi",e.getMessage());
+        }
+        return result;
+    }
+
+    public static boolean resolveDeletedUsersListConflicts(){
+        final Document doc= DatabaseInstance.getInstance().database.getExistingDocument("users_deleted");
+        boolean result=false;
+        try{
+            final List<SavedRevision> conflicts = doc.getConflictingRevisions();
+            if (conflicts.size() > 1) {
+                // There is more than one current revision, thus a conflict!
+                DatabaseInstance.getInstance().database.runInTransaction(new TransactionalTask() {
+                    @Override
+                    public boolean run() {
+                        try {
+                            // Come up with a merged/resolved document in some way that's
+                            // appropriate for the app. You could even just pick the body of
+                            // one of the revisions.
+                            Map<String, Object> mergedProps=new HashMap<String, Object>();
+                            mergedProps.putAll(conflicts.get(0).getProperties());
+
+                            ArrayList<String> mergedUsernames=(ArrayList<String>)mergedProps.get("usernames");
+
+                            for(int i=1;i<conflicts.size();i++){
+                                Map<String, Object> revProps=conflicts.get(i).getProperties();
+                                ArrayList<String> revUsernames=(ArrayList<String>)revProps.get("usernames");
+                                for(int j=0;j<revUsernames.size();j++){
+                                    if(!mergedUsernames.contains(revUsernames.get(j))){
+                                        mergedUsernames.add(revUsernames.get(j));
+                                    }
+                                }
+                            }
+
+                            // Delete the conflicting revisions to get rid of the conflict:
+                            SavedRevision current = doc.getCurrentRevision();
+                            for (SavedRevision rev : conflicts) {
+                                UnsavedRevision newRev = rev.createRevision();
+                                if (rev.getId().equals(current.getId())) {
+                                    newRev.setProperties(mergedProps);
+                                } else {
+                                    newRev.setIsDeletion(true);
+                                }
+                                // saveAllowingConflict allows 'rev' to be updated even if it
+                                // is not the document's current revision.
+                                newRev.save(true);
+                            }
+                        } catch (CouchbaseLiteException e) {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                result=conflicts.size()==1;
+            }
+        }
+        catch(CouchbaseLiteException e){
+            Log.e("Oglasi",e.getMessage());
+        }
+        return result;
+    }
+
+    public static boolean resolveUserConflicts(String userId){
+        final Document doc= DatabaseInstance.getInstance().database.getDocument(userId);
+        boolean result=false;
+        try{
+            final List<SavedRevision> conflicts = doc.getConflictingRevisions();
+            if (conflicts.size() > 1) {
+                // There is more than one current revision, thus a conflict!
+                DatabaseInstance.getInstance().database.runInTransaction(new TransactionalTask() {
+                    @Override
+                    public boolean run() {
+                        try {
+                            // Come up with a merged/resolved document in some way that's
+                            // appropriate for the app. You could even just pick the body of
+                            // one of the revisions.
+                            Map<String, Object> mergedProps=new HashMap<String, Object>();
+                            mergedProps.putAll(conflicts.get(0).getProperties());
+
+                            ArrayList<String> mergedUserAds=(ArrayList<String>)mergedProps.get("ads");
+
+                            for(int i=1;i<conflicts.size();i++){
+                                Map<String, Object> revProps=conflicts.get(i).getProperties();
+                                ArrayList<String> revUserAds=(ArrayList<String>)revProps.get("ads");
+                                for(int j=0;j<revUserAds.size();j++){
+                                    if(!mergedUserAds.contains(revUserAds.get(j))){
+                                        mergedUserAds.add(revUserAds.get(j));
+                                    }
+                                }
+                            }
+
+                            // Delete the conflicting revisions to get rid of the conflict:
+                            SavedRevision current = doc.getCurrentRevision();
+                            for (SavedRevision rev : conflicts) {
+                                UnsavedRevision newRev = rev.createRevision();
+                                if (rev.getId().equals(current.getId())) {
+                                    newRev.setProperties(mergedProps);
+                                } else {
+                                    newRev.setIsDeletion(true);
+                                }
+                                // saveAllowingConflict allows 'rev' to be updated even if it
+                                // is not the document's current revision.
+                                newRev.save(true);
+                            }
+                        } catch (CouchbaseLiteException e) {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                result=conflicts.size()==1;
             }
         }
         catch(CouchbaseLiteException e){

@@ -187,34 +187,36 @@ public class UserAdsActivity extends AppCompatActivity {
                 for(int i=0;i<userAds.size();i++){
                     Document doc=DatabaseInstance.getInstance().database.getExistingDocument(userAds.get(i));
                     if(doc!=null){
-                        Map<String, Object> properties=new HashMap<String, Object>();
-                        properties.putAll(doc.getProperties());
-                        Bitmap bm;
-                        ArrayList<String> adImages=(ArrayList<String>)properties.get("images");
-                        if(adImages.size()!=0){
-                            String[] folderAndName=adImages.get(0).split("/");
-                            String path=folderAndName[0]+"/thumbnail_"+folderAndName[1];
-                            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), path);
-                            if(file.exists()){
-                                Uri imgUri=Uri.fromFile(file);
-                                bm= Helper.decodeSampledBitmapFromUri(imgUri,getApplicationContext(),200,200);
+                        if((boolean)doc.getProperties().get("deleted")==false){
+                            Map<String, Object> properties=new HashMap<String, Object>();
+                            properties.putAll(doc.getProperties());
+                            Bitmap bm;
+                            ArrayList<String> adImages=(ArrayList<String>)properties.get("images");
+                            if(adImages.size()!=0){
+                                String[] folderAndName=adImages.get(0).split("/");
+                                String path=folderAndName[0]+"/thumbnail_"+folderAndName[1];
+                                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), path);
+                                if(file.exists()){
+                                    Uri imgUri=Uri.fromFile(file);
+                                    bm= Helper.decodeSampledBitmapFromUri(imgUri,getApplicationContext(),200,200);
+                                }
+                                else{
+                                    bm= BitmapFactory.decodeResource(getResources(),R.drawable.no_image);
+                                }
                             }
                             else{
                                 bm= BitmapFactory.decodeResource(getResources(),R.drawable.no_image);
                             }
-                        }
-                        else{
-                            bm= BitmapFactory.decodeResource(getResources(),R.drawable.no_image);
-                        }
-                        try{
-                            String adText=(String)properties.get("text");
-                            String upToNCharacters = adText.substring(0, Math.min(adText.length(), 50));
-                            upToNCharacters+="...";
-                            HomeListItemData homeListItemData=new HomeListItemData((String)properties.get("title"),upToNCharacters,bm,doc.getId());
-                            adsListAdapter.add(homeListItemData);
-                        }
-                        catch(Exception e){
-                            Log.e("Oglasi",e.getMessage());
+                            try{
+                                String adText=(String)properties.get("text");
+                                String upToNCharacters = adText.substring(0, Math.min(adText.length(), 50));
+                                upToNCharacters+="...";
+                                HomeListItemData homeListItemData=new HomeListItemData((String)properties.get("title"),upToNCharacters,bm,doc.getId());
+                                adsListAdapter.add(homeListItemData);
+                            }
+                            catch(Exception e){
+                                Log.e("Oglasi",e.getMessage());
+                            }
                         }
                     }
                 }
@@ -337,6 +339,7 @@ public class UserAdsActivity extends AppCompatActivity {
                     Log.e("Oglasi", e.getMessage());
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(UserAdsActivity.this, UserActivity.class);
             startActivity(intent);
         }

@@ -133,7 +133,7 @@ public class NewAdActivity extends AppCompatActivity {
                     mapAd.put("images",new ArrayList<>());
                     mapAd.put("report_flag",false);
                     mapAd.put("report_count",0);
-                    mapAd.put("_deleted",false);
+                    mapAd.put("deleted",false);
 
                     ArrayList<String> filters=new ArrayList<String>();
                     filters.add(mNewAdCat1.getSelectedItem().toString());
@@ -265,6 +265,7 @@ public class NewAdActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(NewAdActivity.this, UserActivity.class);
             startActivity(intent);
         }

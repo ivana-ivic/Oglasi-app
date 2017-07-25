@@ -17,6 +17,7 @@ import com.couchbase.lite.auth.BasicAuthenticator;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
 import com.example.ivana.oglasi.Classes.DatabaseInstance;
+import com.example.ivana.oglasi.Classes.Helper;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -153,6 +154,7 @@ public class UserActivity extends AppCompatActivity {
                     Log.e("Oglasi", "Error occurred", e);
                 }
             }
+            Helper.resolveUserConflicts(username);
             Intent intent = new Intent(UserActivity.this, UserActivity.class);
             startActivity(intent);
         }
